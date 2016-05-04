@@ -1,43 +1,76 @@
 package vinkas.io.model;
 
-import android.accounts.AccountManager;
+import android.widget.Toast;
 
+import com.firebase.client.AuthData;
 import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
 
 import java.util.Iterator;
 
-import vinkas.io.Database;
-import vinkas.io.Object;
+import vinkas.io.app.Database;
 
 /**
  * Created by Vinoth on 3-5-16.
  */
 public class Account extends Object {
 
-    private android.accounts.Account androidAccount;
-    private String id, token, name, email;
+    private String id, name, email;
+    private GoogleAccount googleAccount;
 
-    public Account(Database database, android.accounts.Account androidAccount) {
-        super(database);
-        setAndroidAccount(androidAccount);
+    public Account(Database database, AuthData authData) {
+        super(database, "accounts/" + authData.getUid());
+        setId(authData.getUid());
+        read();
+    }
+
+    public Account(Database database, AuthData authData, GoogleAccount googleAccount) {
+        super(database, "accounts/" + authData.getUid());
+        Toast.makeText(getDatabase().getAndroidContext(), "Success " + authData.getUid(), Toast.LENGTH_LONG).show();
+        setId(authData.getUid());
+        this.googleAccount = googleAccount;
+        read();
+    }
+
+    @Override
+    public void onNonExist() {
+        if(googleAccount != null) {
+            setName(googleAccount.getDisplayName());
+            setEmail(googleAccount.getEmail());
+            googleAccount = null;
+        }
+        super.onNonExist();
+    }
+
+    @Override
+    public boolean isValid() {
+        return (getName() != null && getEmail() != null);
+    }
+
+    @Override
+    public void onRead(String key, java.lang.Object value) {
+        switch (key) {
+            case "Name":
+                setName(value.toString());
+                break;
+            case "Email":
+                setEmail(value.toString());
+                break;
+        }
+    }
+
+    @Override
+    protected void setFirebase(Firebase firebase) {
+        super.setFirebase(firebase);
+        firebase.keepSynced(true);
     }
 
     protected void setEmail(String email) {
         this.email = email;
     }
 
-    private void setId(String id) {
-        if(this.id != id) {
-            this.id = id;
-            setFirebase(getDatabase().getFirebase().child("accounts/" + getId()));
-        }
-    }
-
-    protected void setToken(String token) {
-        if(this.token != token) {
-            this.token = token;
-            getDatabase().onTokenChange(getToken());
-        }
+    protected void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -56,56 +89,10 @@ public class Account extends Object {
         return id;
     }
 
-    public String getToken() {
-        return token;
-    }
-
-    public android.accounts.Account getAndroidAccount() {
-        return androidAccount;
-    }
-
-    private void setAndroidAccount(android.accounts.Account androidAccount) {
-        this.androidAccount = androidAccount;
-        readFromLocal();
-        readFromRemote();
-    }
-
-    public void readFromLocal() {
-        AccountManager am = AccountManager.get(getDatabase().getAndroidContext());
-        android.accounts.Account account = getAndroidAccount();
-        setEmail(account.name);
-        setId(am.getUserData(account, "Id"));
-        setToken(am.getUserData(account, "Token"));
-        setName(am.getUserData(account, "Name"));
-    }
-
-    @Override
-    public void writeToLocal(DataSnapshot dataSnapshot) {
-        AccountManager am = AccountManager.get(getDatabase().getAndroidContext());
-        android.accounts.Account account = getAndroidAccount();
-        Iterator<DataSnapshot> it = dataSnapshot.getChildren().iterator();
-        while(it.hasNext()) {
-            DataSnapshot data = it.next();
-            String key = data.getKey();
-            String value = data.getValue().toString();
-            switch (key) {
-                case "Name":
-                    am.setUserData(account, "Name", value);
-                    break;
-            }
-        }
-    }
-
     @Override
     public void mapData() {
         map.put("Name", getName());
         map.put("Email", getEmail());
-    }
-
-    @Override
-    public void onNonExist() {
-        super.onNonExist();
-        writeToRemote();
     }
 
 }

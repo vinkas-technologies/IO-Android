@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="firebase_io_hostname">EXAMPLE.firebaseio.com</string>
+    <bool name="persistence_enabled">false</bool>
+</resources>
