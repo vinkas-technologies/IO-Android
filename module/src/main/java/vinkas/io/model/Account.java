@@ -3,10 +3,8 @@ package vinkas.io.model;
 import android.widget.Toast;
 
 import com.firebase.client.AuthData;
-import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
-
-import java.util.Iterator;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 
 import vinkas.io.app.Database;
 
@@ -16,7 +14,7 @@ import vinkas.io.app.Database;
 public class Account extends Object {
 
     private String id, name, email;
-    private GoogleAccount googleAccount;
+    private GoogleSignInAccount googleAccount;
 
     public Account(Database database, AuthData authData) {
         super(database, "accounts/" + authData.getUid());
@@ -24,9 +22,8 @@ public class Account extends Object {
         read();
     }
 
-    public Account(Database database, AuthData authData, GoogleAccount googleAccount) {
+    public Account(Database database, AuthData authData, GoogleSignInAccount googleAccount) {
         super(database, "accounts/" + authData.getUid());
-        Toast.makeText(getDatabase().getAndroidContext(), "Success " + authData.getUid(), Toast.LENGTH_LONG).show();
         setId(authData.getUid());
         this.googleAccount = googleAccount;
         read();
@@ -38,6 +35,7 @@ public class Account extends Object {
             setName(googleAccount.getDisplayName());
             setEmail(googleAccount.getEmail());
             googleAccount = null;
+            setHaveData(true);
         }
         super.onNonExist();
     }

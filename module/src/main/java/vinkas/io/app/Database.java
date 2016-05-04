@@ -1,22 +1,19 @@
 package vinkas.io.app;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.auth.UserRecoverableAuthException;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 
 import java.io.IOException;
 
 import vinkas.io.model.Account;
-import vinkas.io.model.GoogleAccount;
 import vinkas.io.util.Helper;
 
 /**
@@ -53,7 +50,7 @@ public class Database implements Firebase.AuthResultHandler {
             } else {
                 switch (getProvider()) {
                     case "google":
-                        setAccount(new Account(this, authData, getGoogleAccount()));
+                        setAccount(new Account(this, authData, getGoogleSignInAccount()));
                         break;
                 }
             }
@@ -72,20 +69,20 @@ public class Database implements Firebase.AuthResultHandler {
     private Firebase firebase;
     private String url;
     private String provider;
-    private GoogleAccount googleAccount;
+    private GoogleSignInAccount googleSignInAccount;
 
-    public GoogleAccount getGoogleAccount() {
-        return googleAccount;
+    public GoogleSignInAccount getGoogleSignInAccount() {
+        return googleSignInAccount;
     }
 
-    public void setGoogleAccount(GoogleAccount googleAccount) {
-        this.googleAccount = googleAccount;
+    public void setGoogleSignInAccount(GoogleSignInAccount googleSignInAccount) {
+        this.googleSignInAccount = googleSignInAccount;
         if (!isAuthenticated())
             authWithGoogle();
     }
 
     private void authWithGoogle() {
-        final android.accounts.Account account = new android.accounts.Account(getGoogleAccount().getEmail(), "com.google");
+        final android.accounts.Account account = new android.accounts.Account(getGoogleSignInAccount().getEmail(), "com.google");
         final String scopes = "oauth2:profile email";
         AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
             @Override
@@ -136,7 +133,7 @@ public class Database implements Firebase.AuthResultHandler {
     }
 
     public Boolean isReady() {
-        if (isAuthenticated() && getAccount().isReaded())
+        if (isAuthenticated() && getAccount().haveData())
             return true;
         return false;
     }

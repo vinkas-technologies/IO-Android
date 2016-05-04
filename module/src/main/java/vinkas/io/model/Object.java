@@ -17,14 +17,14 @@ import vinkas.io.util.Helper;
 public abstract class Object implements ValueEventListener {
 
     private String childPath;
-    protected boolean readed = false;
+    protected boolean haveData = false;
 
-    public boolean isReaded() {
-        return readed;
+    public boolean haveData() {
+        return haveData;
     }
 
-    public void setReaded(boolean readed) {
-        this.readed = readed;
+    public void setHaveData(boolean haveData) {
+        this.haveData = haveData;
     }
 
     public String getChildPath() {
@@ -44,7 +44,7 @@ public abstract class Object implements ValueEventListener {
     public void onDataChange(DataSnapshot dataSnapshot) {
         if (dataSnapshot.exists()) {
             onRead(dataSnapshot);
-            setReaded(true);
+            setHaveData(true);
         }
         else
             onNonExist();
